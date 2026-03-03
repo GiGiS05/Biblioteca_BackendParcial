@@ -9,6 +9,9 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
+    protected $policies = [
+        Book::class => BookPolicy::class,
+    ];
     /**
      * Register any application services.
      */
