@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreBookRequest;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
 use Illuminate\Http\Request;
@@ -23,5 +24,19 @@ class BookController extends Controller
             ->paginate();
 
         return response()->json(BookResource::collection($books));
+    }
+
+    public function show(Request $request, Book $book)
+    {
+        $this->authorize('view', $book);
+        return response()->json(BookResource::make($book));
+    }
+
+    public function store(StoreBookRequest $request)
+    {
+        $this->authorize('create', Book::class);
+        $book = Book::create($request->all());
+
+        return response()->json(BookResource::make($book));
     }
 }
