@@ -6,10 +6,13 @@ use App\Http\Requests\StoreBookRequest;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class BookController extends Controller
 {
-    public function __construct() {}
+    public function __construct() {
+        $this->authorizeResource(Book::class);
+    }
 
     public function index(Request $request)
     {
