@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Book;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
@@ -79,4 +80,15 @@ class BookLoggedOutTest extends TestCase
         //Verification
         $response->assertUnauthorized();
     }
+
+    // Test #11: It cannot delete books while logged out
+    public function test_it_cannot_delete_books_while_logged_out(): void
+    {
+        $book = Book::factory()->create();
+
+        $this->deleteJson("api/v1/books/{$book->id}")
+            ->assertUnauthorized();
+    }
+
+
 }

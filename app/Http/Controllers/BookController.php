@@ -17,6 +17,12 @@ class BookController extends Controller
     public function index(Request $request)
     {
         $this->authorize('viewAny', Book::class);
+
+        $request->validate([
+            'isbn'=> 'regex:/^\d+$/',
+            'is_available' => 'sometimes|boolean'
+            ]);
+
         $books = Book::when($request->has('title'), function ($query) use ($request) {
             $query->where('title', 'like', '%'.$request->input('title').'%');
         })->when($request->has('isbn'), function ($query) use ($request) {
@@ -49,8 +55,10 @@ class BookController extends Controller
     public function show(Request $request, Book $book)
     {
         $this->authorize('view', $book);
+        
         return response()->json(BookResource::make($book));
     }
+   
 
     public function store(StoreBookRequest $request)
     {
