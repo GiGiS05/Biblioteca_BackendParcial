@@ -7,17 +7,26 @@ use Spatie\Permission\Models\Role;
 use Database\Seeders\PermissionSeeder;
 
 beforeEach(function () {
-    // Run the Permission Seeder to have the roles available for tests
+    // to have the roles available for tests
     $this->seed(PermissionSeeder::class);
 });
 
-// Helper function to create users with a specific role
+// to create users with a specific role
 function createUserWithRole(string $roleName)
 {
     $user = User::factory()->create();
     $role = Role::findByName($roleName, 'api');
     $user->assignRole($role);
     return $user;
+}
+
+// to create books with specific available copies
+function createAvailableBook(int $copies = 5)
+{
+    return Book::factory()->create([
+        'available_copies' => $copies,
+        'is_available' => $copies > 0,
+    ]);
 }
 
 it('cannot make loan while logged out', function () {
@@ -30,7 +39,36 @@ it('cannot make loan while logged out', function () {
 });
 
 it('cannot return a book while logged out', function () {
-    $response = $this->postJson('/api/v1/loans/1/return');
+    $student = createUserWithRole('estudiante');
+    $student->password = bcrypt('password');
+    $student->save();
+
+    $book = createAvailableBook(5);
+
+    $loginResponse = $this->postJson('/api/v1/login', [
+        'email' => $student->email,
+        'password' => 'password',
+    ]);
+
+    $token = $loginResponse->json('access_token');
+
+    $loanResponse = $this->withToken($token)->postJson('/api/v1/loans', [
+        'requester_name' => 'Student Name',
+        'book_id' => $book->id,
+    ]);
+
+    $loanResponse->assertStatus(201);
+
+    $loan = Loan::where('book_id', $book->id)->first();
+
+    $this->withToken($token)->postJson('/api/v1/logout')->assertOk();
+
+    // to clear test client cookies and headers
+    $this->withHeaders(['Authorization' => '']);
+    $this->app['auth']->forgetGuards();
+    $this->flushSession();
+
+    $response = $this->postJson("/api/v1/loans/{$loan->id}/return");
 
     $response->assertUnauthorized();
 });
@@ -43,10 +81,7 @@ it('cannot view loan history while logged out', function () {
 
 it('can loan book as a student', function () {
     $student = createUserWithRole('estudiante');
-    $book = Book::factory()->create([
-        'available_copies' => 5,
-        'is_available' => true,
-    ]);
+    $book = createAvailableBook(5);
 
     $response = $this->actingAs($student)->postJson('/api/v1/loans', [
         'requester_name' => 'Student Name',
@@ -62,10 +97,7 @@ it('can loan book as a student', function () {
 
 it('can loan book as a teacher', function () {
     $teacher = createUserWithRole('docente');
-    $book = Book::factory()->create([
-        'available_copies' => 2,
-        'is_available' => true,
-    ]);
+    $book = createAvailableBook(2);
 
     $response = $this->actingAs($teacher)->postJson('/api/v1/loans', [
         'requester_name' => 'Teacher Name',
@@ -81,10 +113,7 @@ it('can loan book as a teacher', function () {
 
 it('can return book as a student', function () {
     $student = createUserWithRole('estudiante');
-    $book = Book::factory()->create([
-        'available_copies' => 4,
-        'is_available' => true,
-    ]);
+    $book = createAvailableBook(4);
 
     $loan = Loan::create([
         'requester_name' => 'Student Name',
@@ -102,10 +131,7 @@ it('can return book as a student', function () {
 
 it('can return book as a teacher', function () {
     $teacher = createUserWithRole('docente');
-    $book = Book::factory()->create([
-        'available_copies' => 4,
-        'is_available' => true,
-    ]);
+    $book = createAvailableBook(4);
 
     $loan = Loan::create([
         'requester_name' => 'Teacher Name',
@@ -123,10 +149,7 @@ it('can return book as a teacher', function () {
 
 it('can update available books after a return', function () {
     $student = createUserWithRole('estudiante');
-    $book = Book::factory()->create([
-        'available_copies' => 0,
-        'is_available' => false,
-    ]);
+    $book = createAvailableBook(0); // just to show no books available
 
     $loan = Loan::create([
         'requester_name' => 'Student Name',
@@ -137,7 +160,7 @@ it('can update available books after a return', function () {
 
     $response->assertOk();
 
-    // Check book is now available and has 1 copy
+    // to check book is now available and has 1 copy
     $this->assertDatabaseHas('books', [
         'id' => $book->id,
         'available_copies' => 1,
