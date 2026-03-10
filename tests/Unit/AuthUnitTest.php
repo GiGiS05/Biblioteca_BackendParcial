@@ -10,7 +10,7 @@ class AuthUnitTest extends TestCase
 {
     use RefreshDatabase;
 
-    //Test #2: It can return token
+    //Test #2: It can validate email
     public function test_login_can_validate_email(): void
     {
         //Execution

@@ -10,7 +10,7 @@ beforeEach(function () {
     $this->seed(PermissionSeeder::class);
 });
 
-#Test #36: It can update a book
+#Test #34: It can update a book
 test("It can update a book", function (string $role) {
     /** @var \Tests\TestCase $this */
     $user = User::factory()->create();
@@ -38,7 +38,7 @@ test("It can update a book", function (string $role) {
     ]);
 })->with(['bibliotecario']);
 
-#Test #37: It cannot update a book with invalid information
+#Test #35: It cannot update a book with invalid information
 test("It cannot update a book with invalid information", function (string $role) {
     /** @var \Tests\TestCase $this */
     $user = User::factory()->create();
@@ -59,7 +59,7 @@ test("It cannot update a book with invalid information", function (string $role)
              ->assertJsonValidationErrors(['ISBN', 'total_copies']);
 })->with(['bibliotecario']);
 
-#Test #38: It cannot update a book if not a 'bibliotecario'
+#Test #36: It cannot update a book if not a 'bibliotecario'
 test("It cannot update a book if not a 'bibliotecario'", function (string $role) {
     /** @var \Tests\TestCase $this */
     $user = User::factory()->create();

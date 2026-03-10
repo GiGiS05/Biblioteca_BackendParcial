@@ -10,7 +10,7 @@ beforeEach(function () {
     $this->seed(PermissionSeeder::class);
 });
 
-#Test #32: It can create a book
+#Test #30: It can create a book
 test("It can create a book", function (string $role) {
     /** @var \Tests\TestCase $this */
     $user = User::factory()->create();
@@ -32,7 +32,7 @@ test("It can create a book", function (string $role) {
     $this->assertDatabaseHas('books', ['ISBN' => '9780132350884']);
 })->with(['bibliotecario']);
 
-#Test #33: It cannot create a book with incomplete information
+#Test #31: It cannot create a book with incomplete information
 test("It cannot create a book with incomplete information", function (string $role) {
     /** @var \Tests\TestCase $this */
     $user = User::factory()->create();
@@ -50,7 +50,7 @@ test("It cannot create a book with incomplete information", function (string $ro
              ->assertJsonValidationErrors(['description', 'ISBN', 'total_copies', 'available_copies', 'is_available']);
 })->with(['bibliotecario']);
 
-#Test #34: It cannot create a book if not a 'bibliotecario'
+#Test #32: It cannot create a book if not a 'bibliotecario'
 test("It cannot create a book if not a 'bibliotecario'", function (string $role) {
     /** @var \Tests\TestCase $this */
     $user = User::factory()->create();
@@ -71,7 +71,7 @@ test("It cannot create a book if not a 'bibliotecario'", function (string $role)
     $response->assertStatus(403);
 })->with(['estudiante', 'docente']);
 
-#Test #35: It cannot create a book with invalid information
+#Test #33: It cannot create a book with invalid information
 test("It cannot create a book with invalid information", function (string $role) {
     /** @var \Tests\TestCase $this */
     $user = User::factory()->create();

@@ -10,7 +10,7 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $this->seed(PermissionSeeder::class);
 });
-// Test #21: It can list books
+// Test #19: It can list books
 test("It can list books", function (string $role) {
 
     $this->seed(PermissionSeeder::class);
@@ -25,7 +25,7 @@ test("It can list books", function (string $role) {
 
 })->with(['estudiante', 'docente', 'bibliotecario']);
 
-// Test #22: It can list available books
+// Test #20: It can list available books
 test("It can list available books", function (string $role) {
 
     $user = User::factory()->create();
@@ -40,7 +40,7 @@ test("It can list available books", function (string $role) {
 
 })->with(['estudiante', 'docente', 'bibliotecario']);
 
-// Test #23: It can list unavailable books
+// Test #21: It can list unavailable books
 test("It can list unavailable books", function (string $role) {
 
     $user = User::factory()->create();
@@ -55,7 +55,7 @@ test("It can list unavailable books", function (string $role) {
 
 })->with(['estudiante', 'docente', 'bibliotecario']);
 
-// Test #24: It can list books filtered by their title
+// Test #22: It can list books filtered by their title
 test("It can list books filtered by their title", function (string $role) {
 
     $user = User::factory()->create();
@@ -70,7 +70,7 @@ test("It can list books filtered by their title", function (string $role) {
 
 })->with(['estudiante', 'docente', 'bibliotecario']);
 
-// Test #25: It can return an empty list when there are no title matches
+// Test #23: It can return an empty list when there are no title matches
 test("It can return an empty list when there are no title matches", function (string $role) {
 
     $user = User::factory()->create();
@@ -85,7 +85,7 @@ test("It can return an empty list when there are no title matches", function (st
 
 })->with(['estudiante', 'docente', 'bibliotecario']);
 
-// Test #26: It can list books filtered by their ISBN
+// Test #24: It can list books filtered by their ISBN
 test("It can list books filtered by their ISBN", function (string $role) {
 
     $user = User::factory()->create();
@@ -100,7 +100,7 @@ test("It can list books filtered by their ISBN", function (string $role) {
 
 })->with(['estudiante', 'docente', 'bibliotecario']);
 
-// Test #27: It can return an empty list when there are no ISBN matches
+// Test #25: It can return an empty list when there are no ISBN matches
 test("It can return an empty list when there are no ISBN matches", function (string $role) {
 
     $user = User::factory()->create();
@@ -114,7 +114,7 @@ test("It can return an empty list when there are no ISBN matches", function (str
 
 })->with(['estudiante', 'docente', 'bibliotecario']);
 
-// Test #28: It can return a 422 error when wrong type of data is input in the request when filtering by availability 
+// Test #26: It can return a 422 error when wrong type of data is input in the request when filtering by availability 
 test("It can return a 422 error when wrong type of data is input in the request when filtering by availability", function (string $role) {
 
     $user = User::factory()->create();
@@ -126,7 +126,7 @@ test("It can return a 422 error when wrong type of data is input in the request 
 
 })->with(['estudiante', 'docente', 'bibliotecario']);
 
-// Test #29: It can return a 422 error when wrong type of data is input in the request when filtering by ISBN
+// Test #27: It can return a 422 error when wrong type of data is input in the request when filtering by ISBN
  test("It can return a 422 error when wrong type of data is input in the request when filtering by ISBN", function (string $role) {
 
     $user = User::factory()->create();
@@ -138,7 +138,7 @@ test("It can return a 422 error when wrong type of data is input in the request 
 
 })->with(['estudiante', 'docente', 'bibliotecario']);
 
-// Test #30: It can get books details
+// Test #28: It can get books details
 test("It can get books details", function (string $role) {
 
     $user = User::factory()->create();
@@ -169,7 +169,7 @@ test("It can get books details", function (string $role) {
 
 })->with(['estudiante', 'docente', 'bibliotecario']);
 
-// Test #31: It can notify when there are no matches for the searched book.
+// Test #29: It can notify when there are no matches for the searched book.
 test("It can notify when there are no matches for the searched book", function (string $role) {
 
     $user = User::factory()->create();

@@ -10,7 +10,7 @@ beforeEach(function () {
     $this->seed(PermissionSeeder::class);
 });
 
-#Test #39: It can delete a book
+#Test #37: It can delete a book as a librarian
 test("It can delete a book", function (string $role) {
     /** @var \Tests\TestCase $this */
     $user = User::factory()->create();
@@ -25,7 +25,7 @@ test("It can delete a book", function (string $role) {
     $this->assertDatabaseMissing('books', ['id' => $book->id]);
 })->with(['bibliotecario']);
 
-#Test #40: It cannot delete an already deleted book
+#Test #38: It cannot delete an already deleted book
 test("It cannot delete an already deleted book", function (string $role) {
     /** @var \Tests\TestCase $this */
     $user = User::factory()->create();
@@ -45,7 +45,7 @@ test("It cannot delete an already deleted book", function (string $role) {
     $response->assertStatus(404);
 })->with(['bibliotecario']);
 
-#Test #41: It cannot delete a book if not a 'bibliotecario'
+#Test #39: It cannot delete a book if not a 'bibliotecario'
 test("It cannot delete a book if not a 'bibliotecario'", function (string $role) {
     /** @var \Tests\TestCase $this */
     $user = User::factory()->create();

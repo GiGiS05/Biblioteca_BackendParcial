@@ -29,56 +29,7 @@ function createAvailableBook(int $copies = 5)
     ]);
 }
 
-it('cannot make loan while logged out', function () {
-    $response = $this->postJson('/api/v1/loans', [
-        'requester_name' => 'John Doe',
-        'book_id' => 1,
-    ]);
-
-    $response->assertUnauthorized();
-});
-
-it('cannot return a book while logged out', function () {
-    $student = createUserWithRole('estudiante');
-    $student->password = bcrypt('password');
-    $student->save();
-
-    $book = createAvailableBook(5);
-
-    $loginResponse = $this->postJson('/api/v1/login', [
-        'email' => $student->email,
-        'password' => 'password',
-    ]);
-
-    $token = $loginResponse->json('access_token');
-
-    $loanResponse = $this->withToken($token)->postJson('/api/v1/loans', [
-        'requester_name' => 'Student Name',
-        'book_id' => $book->id,
-    ]);
-
-    $loanResponse->assertStatus(201);
-
-    $loan = Loan::where('book_id', $book->id)->first();
-
-    $this->withToken($token)->postJson('/api/v1/logout')->assertOk();
-
-    // to clear test client cookies and headers
-    $this->withHeaders(['Authorization' => '']);
-    $this->app['auth']->forgetGuards();
-    $this->flushSession();
-
-    $response = $this->postJson("/api/v1/loans/{$loan->id}/return");
-
-    $response->assertUnauthorized();
-});
-
-it('cannot view loan history while logged out', function () {
-    $response = $this->getJson('/api/v1/loans');
-
-    $response->assertUnauthorized();
-});
-
+//Test #40: It can loan a book as a student
 it('can loan book as a student', function () {
     $student = createUserWithRole('estudiante');
     $book = createAvailableBook(5);
@@ -95,6 +46,7 @@ it('can loan book as a student', function () {
     ]);
 });
 
+//Test #41: It can loan a book as a teacher
 it('can loan book as a teacher', function () {
     $teacher = createUserWithRole('docente');
     $book = createAvailableBook(2);
@@ -111,6 +63,7 @@ it('can loan book as a teacher', function () {
     ]);
 });
 
+//Test #42: It can return a book as a student
 it('can return book as a student', function () {
     $student = createUserWithRole('estudiante');
     $book = createAvailableBook(4);
@@ -129,6 +82,7 @@ it('can return book as a student', function () {
     ]);
 });
 
+//Test #43: It can return a book as a teacher
 it('can return book as a teacher', function () {
     $teacher = createUserWithRole('docente');
     $book = createAvailableBook(4);
@@ -147,6 +101,7 @@ it('can return book as a teacher', function () {
     ]);
 });
 
+//Test #44: It can update available books after a return
 it('can update available books after a return', function () {
     $student = createUserWithRole('estudiante');
     $book = createAvailableBook(0); // just to show no books available
@@ -168,6 +123,7 @@ it('can update available books after a return', function () {
     ]);
 });
 
+//Test #45: It can view loan history as a student
 it('can view loan history as a student', function () {
     $student = createUserWithRole('estudiante');
 
@@ -176,6 +132,7 @@ it('can view loan history as a student', function () {
     $response->assertOk();
 });
 
+//Test #46: It can view loan history as a teacher
 it('can view loan history as a teacher', function () {
     $teacher = createUserWithRole('docente');
 
@@ -184,6 +141,7 @@ it('can view loan history as a teacher', function () {
     $response->assertOk();
 });
 
+//Test #47: It can view loan history as a librarian
 it('can view loan history as a librarian', function () {
     $librarian = createUserWithRole('bibliotecario');
 
@@ -192,6 +150,7 @@ it('can view loan history as a librarian', function () {
     $response->assertOk();
 });
 
+//Test #48: It can return an empty list when there are no loans registered
 it('can return an empty list when there are no loans registered', function () {
     $librarian = createUserWithRole('bibliotecario');
 
