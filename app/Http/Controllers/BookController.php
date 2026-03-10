@@ -7,6 +7,7 @@ use App\Http\Resources\BookResource;
 use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Http\Requests\UpdateBookRequest;
 
 class BookController extends Controller
 {
@@ -36,7 +37,7 @@ class BookController extends Controller
     }
 
 
-    public function update(Request $request, Book $book)
+    public function update(UpdateBookRequest $request, Book $book)
     {
         $this->authorize('update', $book);
         $book->update($request->all());
