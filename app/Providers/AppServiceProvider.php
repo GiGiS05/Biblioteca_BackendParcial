@@ -3,12 +3,18 @@
 namespace App\Providers;
 
 use App\Models\Book;
+use App\Models\Loan;
 use App\Policies\BookPolicy;
+use App\Policies\LoanPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
+    protected $policies = [
+        Book::class => BookPolicy::class,
+        Loan::class => LoanPolicy::class,
+    ];
     /**
      * Register any application services.
      */
@@ -23,5 +29,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Book::class, BookPolicy::class);
+        Gate::policy(Loan::class, LoanPolicy::class);
     }
 }

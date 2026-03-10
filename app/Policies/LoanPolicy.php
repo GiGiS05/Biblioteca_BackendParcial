@@ -2,25 +2,26 @@
 
 namespace App\Policies;
 
-use App\Models\Book;
+use App\Models\Loan;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
-class BookPolicy
+class LoanPolicy
 {
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('viewAny book');
+        return $user->can('viewAny loan');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Book $book): bool
+    public function view(User $user, Loan $loan): bool
     {
-        return $user->can('view book');
+        return false;
     }
 
     /**
@@ -28,29 +29,29 @@ class BookPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole('bibliotecario');
+        return $user->can('create loan');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Book $book): bool
+    public function update(User $user, Loan $loan): bool
     {
-        return $user->hasRole('bibliotecario');
+        return false;
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Book $book): bool
+    public function delete(User $user, Loan $loan): bool
     {
-        return $user->hasRole('bibliotecario');
+        return false;
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Book $book): bool
+    public function restore(User $user, Loan $loan): bool
     {
         return false;
     }
@@ -58,8 +59,13 @@ class BookPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Book $book): bool
+    public function forceDelete(User $user, Loan $loan): bool
     {
         return false;
+    }
+
+    public function returnLoan(User $user, Loan $loan): bool
+    {
+        return $user->can('create returnLoan');
     }
 }

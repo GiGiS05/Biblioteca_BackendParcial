@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AuthLoginRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+    public function login(AuthLoginRequest $request)
     {
         if (Auth::attempt($request->only('email', 'password'))) {
             $user = Auth::user();
@@ -29,6 +30,7 @@ class AuthController extends Controller
     {
         $user = Auth::user();
         $user->tokens()->delete();
+        Auth::guard('web')->logout();
 
         return response()->json([
             'message' => 'Logged out successfully',

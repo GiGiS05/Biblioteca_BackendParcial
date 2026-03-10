@@ -1,59 +1,401 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Biblioteca API - Guia practica con Testing en PEST
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Proposito del proyecto
 
-## About Laravel
+Este proyecto fue desarrollado como una **guia practica** para implementar y validar una API REST en Laravel.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+El enfoque principal fue aplicar **testing automatizado con PEST** para verificar:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Autenticacion con Sanctum.
+- Control de acceso por roles y permisos.
+- Reglas de autorizacion con Policies.
+- Flujo CRUD de libros.
+- Flujo de prestamos y devoluciones.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+En particular, se probaron `BookPolicy` y `LoanPolicy` para garantizar que cada rol (`bibliotecario`, `docente`, `estudiante`) tenga solo los permisos permitidos.
 
-## Learning Laravel
+## Tecnologias utilizadas
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- Laravel 12
+- PHP
+- Laravel Sanctum
+- Spatie Permission
+- PEST + PHPUnit
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Roles y permisos
 
-## Laravel Sponsors
+La asignacion de roles/permisos se centraliza en `database/seeders/PermissionSeeder.php`.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Roles creados:
 
-### Premium Partners
+- `bibliotecario`
+- `docente`
+- `estudiante`
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Permisos clave por rol:
 
-## Contributing
+- `bibliotecario`: crear, actualizar, eliminar y consultar libros; ver préstamos.
+- `docente`: consultar libros, crear préstamo, devolver préstamo, ver préstamos.
+- `estudiante`: consultar libros, crear préstamo, devolver prestamo, ver préstamos.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Endpoints de la API (v1)
 
-## Code of Conduct
+Base URL: `http://localhost:8000/api/v1`
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+> Nota: todos los endpoints excepto `POST /login` requieren autenticacion con Bearer Token (`auth:sanctum`).
 
-## Security Vulnerabilities
+| Metodo | Endpoint | Descripcion | Auth |
+|---|---|---|---|
+| POST | `/login` | Iniciar sesion | No |
+| POST | `/logout` | Cerrar sesion (revoca tokens) | Si |
+| GET | `/profile` | Perfil del usuario autenticado | Si |
+| GET | `/books` | Listar libros (con filtros) | Si |
+| GET | `/books/{book}` | Ver detalle de libro | Si |
+| POST | `/books` | Crear libro (bibliotecario) | Si |
+| PATCH | `/books/{book}` | Actualizar libro (bibliotecario) | Si |
+| DELETE | `/books/{book}` | Eliminar libro (bibliotecario) | Si |
+| GET | `/loans` | Historial/listado de prestamos | Si |
+| POST | `/loans` | Crear prestamo | Si |
+| POST | `/loans/{loan}/return` | Registrar devolucion | Si |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Estructura JSON de requests y responses
 
-## License
+### 1) Login
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**Request** `POST /api/v1/login`
+
+```json
+{
+	"email": "docente@example.com",
+	"password": "password"
+}
+```
+
+**Response 200**
+
+```json
+{
+	"access_token": "1|token_generado",
+	"token_type": "Bearer",
+	"user": {
+		"id": 2,
+		"name": "Pepe Docente",
+		"email": "docente@example.com"
+	}
+}
+```
+
+**Response 422 (credenciales invalidas)**
+
+```json
+{
+	"message": "Invalid credentials"
+}
+```
+
+### 2) Perfil y logout
+
+**Request** `GET /api/v1/profile`
+
+**Response 200**
+
+```json
+{
+	"user": {
+		"id": 1,
+		"name": "Lucas Bibliotecario",
+		"email": "bibliotecario@example.com"
+	}
+}
+```
+
+**Request** `POST /api/v1/logout`
+
+**Response 200**
+
+```json
+{
+	"message": "Logged out successfully"
+}
+```
+
+### 3) Libros
+
+#### Crear libro
+
+**Request** `POST /api/v1/books`
+
+```json
+{
+	"title": "Clean Code",
+	"description": "A Handbook of Agile Software Craftsmanship",
+	"ISBN": "9780132350884",
+	"total_copies": 5,
+	"available_copies": 5,
+	"is_available": true
+}
+```
+
+**Response 200**
+
+```json
+{
+	"id": 10,
+	"title": "Clean Code",
+	"description": "A Handbook of Agile Software Craftsmanship",
+	"ISBN": "9780132350884",
+	"total_copies": 5,
+	"available_copies": 5,
+	"is_available": "Disponible"
+}
+```
+
+**Response 422 (validacion)**
+
+```json
+{
+	"message": "The given data was invalid.",
+	"errors": {
+		"description": ["The description field is required."],
+		"ISBN": ["The ISBN field is required."]
+	}
+}
+```
+
+#### Listar libros (con filtros)
+
+**Request** `GET /api/v1/books?title=principito&isbn=12345678912&is_available=1`
+
+Filtros soportados:
+
+- `title` (coincidencia parcial)
+- `isbn` (solo digitos)
+- `is_available` (`0` o `1`)
+
+**Response 200 (ejemplo simplificado)**
+
+```json
+[
+	{
+		"id": 1,
+		"title": "El principito",
+		"description": "Un libro muy famoso",
+		"ISBN": "12345678912",
+		"total_copies": 8,
+		"available_copies": 5,
+		"is_available": "Disponible"
+	}
+]
+```
+
+#### Ver detalle de libro
+
+**Request** `GET /api/v1/books/{book}`
+
+**Response 404 (sin coincidencias)**
+
+```json
+{
+	"message": "There are no matches for the searched book"
+}
+```
+
+#### Actualizar libro
+
+**Request** `PATCH /api/v1/books/{book}`
+
+```json
+{
+	"title": "Updated Title",
+	"available_copies": 10,
+	"total_copies": 10
+}
+```
+
+**Response 200**: devuelve el libro actualizado en formato `BookResource`.
+
+#### Eliminar libro
+
+**Request** `DELETE /api/v1/books/{book}`
+
+**Response 200**: devuelve el libro eliminado en formato `BookResource`.
+
+### 4) Prestamos y devoluciones
+
+#### Crear prestamo
+
+**Request** `POST /api/v1/loans`
+
+```json
+{
+	"requester_name": "Student Name",
+	"book_id": 1
+}
+```
+
+**Response 201**
+
+```json
+{
+	"id": 4,
+	"requester_name": "Student Name",
+	"book_id": 1,
+	"return_at": null,
+	"created_at": "2026-03-09T12:00:00.000000Z",
+	"updated_at": "2026-03-09T12:00:00.000000Z"
+}
+```
+
+**Response 422 (libro no disponible)**
+
+```json
+{
+	"message": "Book is not available"
+}
+```
+
+#### Listar prestamos
+
+**Request** `GET /api/v1/loans`
+
+**Response 200 (ejemplo)**
+
+```json
+[
+	{
+		"id": 4,
+		"requester_name": "Student Name",
+		"book": {
+			"id": 1,
+			"title": "Clean Code",
+			"description": "A Handbook of Agile Software Craftsmanship",
+			"ISBN": "9780132350884",
+			"total_copies": 5,
+			"available_copies": 4,
+			"is_available": "Disponible"
+		},
+		"is_active": true,
+		"return_at": null,
+		"created_at": "2026-03-09T12:00:00.000000Z",
+		"updated_at": "2026-03-09T12:00:00.000000Z"
+	}
+]
+```
+
+#### Devolver prestamo
+
+**Request** `POST /api/v1/loans/{loan}/return`
+
+**Response 200**
+
+```json
+{
+	"id": 4,
+	"requester_name": "Student Name",
+	"book": {
+		"id": 1,
+		"title": "Clean Code",
+		"description": "A Handbook of Agile Software Craftsmanship",
+		"ISBN": "9780132350884",
+		"total_copies": 5,
+		"available_copies": 5,
+		"is_available": "Disponible"
+	},
+	"is_active": false,
+	"return_at": "2026-03-09T13:00:00.000000Z",
+	"created_at": "2026-03-09T12:00:00.000000Z",
+	"updated_at": "2026-03-09T13:00:00.000000Z"
+}
+```
+
+**Response 422 (ya devuelto)**
+
+```json
+{
+	"message": "Loan already returned"
+}
+```
+
+## Errores comunes HTTP en este proyecto
+
+- `401 Unauthorized`: request sin token o token invalido.
+- `403 Forbidden`: usuario autenticado sin permisos (policy/rol).
+- `404 Not Found`: recurso no encontrado (por ejemplo libro inexistente).
+- `422 Unprocessable Entity`: errores de validacion o reglas de negocio.
+
+## Estructura del proyecto
+
+```text
+app/
+	Http/
+		Controllers/
+			AuthController.php
+			BookController.php
+			LoanController.php
+			ReturnLoanController.php
+		Requests/
+			AuthLoginRequest.php
+			StoreBookRequest.php
+			UpdateBookRequest.php
+			StoreLoanRequest.php
+		Resources/
+			BookResource.php
+			LoanResource.php
+	Models/
+		Book.php
+		Loan.php
+		User.php
+	Policies/
+		BookPolicy.php
+		LoanPolicy.php
+database/
+	migrations/
+	seeders/
+		PermissionSeeder.php
+		BookSeeder.php
+		DatabaseSeeder.php
+routes/
+	api.php
+tests/
+	Feature/
+		AccessTest.php
+		AuthTest.php
+		BookCreateTest.php
+		BookDeleteTest.php
+		BookGetDataTest.php
+		BookLoggedOutTest.php
+		BookUpdateTest.php
+		LoanTest.php
+		LogoutTest.php
+	Unit/
+		AuthUnitTest.php
+```
+
+## Ejecucion rapida
+
+1. Instalar dependencias:
+
+```bash
+composer install
+```
+
+2. Configurar entorno y base de datos (`.env`).
+
+3. Ejecutar migraciones y seeders:
+
+```bash
+php artisan migrate --seed
+```
+
+4. Levantar servidor local:
+
+```bash
+php artisan serve
+```
+
+5. Ejecutar pruebas:
+
+```bash
+php artisan test
+```
+
